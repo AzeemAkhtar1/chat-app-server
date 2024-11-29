@@ -17,8 +17,12 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:8080",
-        methods: ["GET", "POST"]
+        origin: [
+            'https://chat-app-client-git-main-azeem-akhtars-projects.vercel.app/',
+            'http://localhost:8080'
+        ],
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
@@ -28,11 +32,11 @@ connectDB();
 // Middleware
 app.use(cors({
     origin: [
-        'https://chat-app-client-jv7eq1fst-azeem-akhtars-projects.vercel.app',
+        'https://chat-app-client-git-main-azeem-akhtars-projects.vercel.app/',
         'http://localhost:8080'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: false,
+    credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
