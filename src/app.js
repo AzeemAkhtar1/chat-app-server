@@ -8,19 +8,39 @@ const socketConfig = require('./config/socket');
 const authRoutes = require('./routes/auth.routes');
 const chatRoutes = require('./routes/chat.routes');
 
-
 // Load environment variables
 dotenv.config();
 
 // Create Express app
 const app = express();
 const httpServer = createServer(app);
+
+// CORS configuration
+const allowedOrigins = [
+    'https://chat-app-client-git-main-azeem-akhtars-projects.vercel.app',
+    'https://chat-app-client-1qg9sz5dg-azeem-akhtars-projects.vercel.app',
+    'http://localhost:8080'
+];
+
+app.use(cors({
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) === -1) {
+            return callback(new Error('CORS not allowed'));
+        }
+        return callback(null, true);
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
+// Socket.io configuration
 const io = new Server(httpServer, {
     cors: {
-        origin: [
-            'https://chat-app-client-git-main-azeem-akhtars-projects.vercel.app/',
-            'http://localhost:8080'
-        ],
+        origin: allowedOrigins,
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -30,15 +50,6 @@ const io = new Server(httpServer, {
 connectDB();
 
 // Middleware
-app.use(cors({
-    origin: [
-        'https://chat-app-client-git-main-azeem-akhtars-projects.vercel.app/',
-        'http://localhost:8080'
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
 app.use(express.json());
 
 // Routes
@@ -47,6 +58,11 @@ app.use('/api/chat', chatRoutes);
 
 // Socket.io configuration
 socketConfig(io);
+
+// Health check route
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
 
 // Start server
 const PORT = process.env.PORT || 5000;
